@@ -2,9 +2,14 @@
 langchain>=0.1.0
 langchain-experimental>=0.0.45
 langchain-openai>=0.1.0
+langchain-community>=0.0.20
+langchain-anthropic>=0.1.0
 
 # Environment variable support
 python-dotenv>=1.0.0
+
+# HTTP requests for provider validation
+requests>=2.31.0
 
 # Graph visualization
 pyvis>=0.3.2
