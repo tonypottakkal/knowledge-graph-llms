@@ -1,0 +1,6 @@
+{
+  "error": "Insufficient working providers",
+  "working_providers": [
+    "ollama"
+  ]
+}

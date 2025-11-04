@@ -16,3 +16,6 @@ pyvis>=0.3.2
 
 # Web UI
 streamlit>=1.32.0
+
+# JSON parsing for LLM responses
+json-repair>=0.52.0

@@ -1,0 +1,103 @@
+{
+  "test_timestamp": "2025-11-03T17:57:49.408426",
+  "configuration_tests": {
+    "openai": {
+      "valid": true,
+      "error": null,
+      "duration": 5.7220458984375e-06,
+      "required_vars": [
+        "OPENAI_API_KEY"
+      ]
+    },
+    "ollama": {
+      "valid": true,
+      "error": null,
+      "duration": 2.09808349609375e-05,
+      "required_vars": []
+    },
+    "custom": {
+      "valid": false,
+      "error": "Missing required environment variable: CUSTOM_LLM_API_KEY",
+      "duration": 2.1457672119140625e-06,
+      "required_vars": []
+    }
+  },
+  "connection_tests": {
+    "openai": {
+      "connected": false,
+      "error": "OpenAI connection failed: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}",
+      "duration": 2.5307929515838623
+    },
+    "ollama": {
+      "connected": true,
+      "error": null,
+      "duration": 0.07886004447937012
+    },
+    "custom": {
+      "connected": false,
+      "error": "Configuration invalid: Missing required environment variable: CUSTOM_LLM_API_KEY",
+      "duration": 7.152557373046875e-06
+    }
+  },
+  "generation_tests": {
+    "openai": {
+      "skipped": true,
+      "reason": "Connection failed"
+    },
+    "ollama": {
+      "success": false,
+      "model": "qwen2.5:7b-instruct",
+      "duration": 17.330048084259033,
+      "error": "Knowledge graph generation failed: Ollama port issue. Ensure Ollama is running on the correct port (default: 11434) and not blocked by firewall."
+    },
+    "custom": {
+      "skipped": true,
+      "reason": "Configuration invalid"
+    }
+  },
+  "switching_tests": {
+    "skipped": true,
+    "reason": "Insufficient working providers"
+  },
+  "error_handling_tests": {
+    "invalid_provider": {
+      "success": true,
+      "error_caught": "Knowledge graph generation failed: Unknown provider 'invalid_provider': Provider validation failed: Unknown provider 'invalid_provider': Invalid provider configuration: Unknown provider: invalid_provider",
+      "duration": 0.0002338886260986328
+    },
+    "openai_invalid_model": {
+      "success": true,
+      "error_caught": "Knowledge graph generation failed: OpenAI error: Provider validation failed: OpenAI error: OpenAI connection failed: Error code: 404 - {'error': {'message': 'The model `invalid_model_name_12345` does not exist or you do not have access to it.', 'type': 'invalid_request_error', 'param': None, 'code': 'model_not_found'}}. Ensure API key is valid and has sufficient credits. Check OpenAI status page for service issues.. Ensure API key is valid and has sufficient credits. Check OpenAI status page for service issues.",
+      "duration": 0.1268622875213623
+    }
+  },
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 3,
+    "failed_tests": 3,
+    "success_rate": 50.0,
+    "test_types": {
+      "configuration_validation": {
+        "total": 3,
+        "passed": 2,
+        "failed": 1
+      },
+      "connection_validation": {
+        "total": 2,
+        "passed": 1,
+        "failed": 1
+      },
+      "knowledge_graph_generation": {
+        "total": 1,
+        "passed": 0,
+        "failed": 1
+      }
+    },
+    "average_durations": {
+      "configuration_validation": 9.616216023763021e-06,
+      "connection_validation": 1.3048264980316162,
+      "knowledge_graph_generation": 17.330048084259033
+    },
+    "total_duration": 19.939729928970337
+  }
+}

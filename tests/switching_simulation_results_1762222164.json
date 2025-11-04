@@ -1,0 +1,109 @@
+{
+  "model_switching": {
+    "success": true,
+    "models_tested": 2,
+    "avg_switch_time": 9.88374662399292,
+    "results": {
+      "model_1": {
+        "model": "qwen2.5:7b-instruct",
+        "connected": true,
+        "switch_time": 9.107952117919922,
+        "error": null
+      },
+      "model_2": {
+        "model": "mistral:7b-instruct",
+        "connected": true,
+        "switch_time": 10.659541130065918,
+        "error": null
+      }
+    }
+  },
+  "config_persistence": {
+    "success": true,
+    "configs_tested": 3,
+    "restoration_successful": true,
+    "results": {
+      "config_1": {
+        "temperature": 0.0,
+        "max_tokens": 1000,
+        "applied": true
+      },
+      "config_2": {
+        "temperature": 0.5,
+        "max_tokens": 2000,
+        "applied": true
+      },
+      "config_3": {
+        "temperature": 1.0,
+        "max_tokens": null,
+        "applied": true
+      }
+    }
+  },
+  "temperature_switching": {
+    "success": true,
+    "temperatures_tested": 4,
+    "avg_creation_time": 5.7578086853027344e-05,
+    "results": {
+      "temp_0.0": {
+        "temperature": 0.0,
+        "success": true,
+        "creation_time": 0.0001289844512939453
+      },
+      "temp_0.3": {
+        "temperature": 0.3,
+        "success": true,
+        "creation_time": 4.7206878662109375e-05
+      },
+      "temp_0.7": {
+        "temperature": 0.7,
+        "success": true,
+        "creation_time": 3.0040740966796875e-05
+      },
+      "temp_1.0": {
+        "temperature": 1.0,
+        "success": true,
+        "creation_time": 2.4080276489257812e-05
+      }
+    }
+  },
+  "session_management": {
+    "success": true,
+    "operations_tested": 4,
+    "results": {
+      "connection_test": {
+        "state_preserved": true,
+        "operation_successful": true
+      },
+      "model_change": {
+        "state_preserved": true,
+        "operation_successful": true
+      },
+      "temperature_change": {
+        "state_preserved": true,
+        "operation_successful": true
+      },
+      "graph_generation": {
+        "state_preserved": true,
+        "operation_successful": true
+      }
+    }
+  },
+  "error_recovery": {
+    "success": false,
+    "results": {
+      "invalid_model": {
+        "recovered": false,
+        "error": "Should have failed"
+      },
+      "config_recovery": {
+        "recovered": true
+      },
+      "connection_resilience": {
+        "success_rate": 1.0,
+        "attempts": 3,
+        "successful": 3
+      }
+    }
+  }
+}

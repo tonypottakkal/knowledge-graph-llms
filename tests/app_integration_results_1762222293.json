@@ -1,0 +1,79 @@
+{
+  "provider_selection": {
+    "success": true,
+    "available_providers": 3,
+    "selected_provider": "ollama",
+    "provider_config_keys": [
+      "name",
+      "display_name",
+      "supports_model_selection",
+      "default_model",
+      "connection_test_required",
+      "ollama_base_url"
+    ]
+  },
+  "model_selection": {
+    "success": true,
+    "available_models": 11,
+    "selected_model": "qwen2.5:7b-instruct",
+    "models_list": [
+      "qwen2.5:7b-instruct",
+      "mistral:7b-instruct",
+      "sciphi/triplex:latest"
+    ]
+  },
+  "connection_testing": {
+    "success": true,
+    "connection_successful": true,
+    "status_info": {
+      "status": "success",
+      "message": "Successfully connected to ollama"
+    },
+    "connection_key": "ollama_qwen2.5:7b-instruct"
+  },
+  "graph_generation": {
+    "success": true,
+    "provider": "ollama",
+    "model": "qwen2.5:7b-instruct",
+    "nodes": 6,
+    "edges": 4,
+    "generation_time": 30.8934268951416
+  },
+  "error_handling": {
+    "success": true,
+    "results": {
+      "invalid_provider": {
+        "handled": true,
+        "error_message": "Knowledge graph generation failed: Unknown provider 'invalid_provider': Provider validation failed: Unknown provider 'invalid_provider': Invalid provider configuration: Unknown provider: invalid_provider",
+        "user_friendly": true
+      },
+      "config_error": {
+        "handled": true,
+        "error_message": "Missing required environment variable: CUSTOM_LLM_API_KEY",
+        "user_friendly": true
+      },
+      "connection_error": {
+        "handled": true,
+        "error_message": "Knowledge graph generation failed: Cannot connect to Ollama service. Install Ollama from https://ollama.ai and run 'ollama serve' to start the service. Pull models with 'ollama pull <model-name>'. Make sure Ollama is running with 'ollama serve'.",
+        "user_friendly": true
+      }
+    },
+    "error_types_tested": 3
+  },
+  "session_persistence": {
+    "success": true,
+    "operations_tested": 4,
+    "state_preserved_count": 4,
+    "final_state": {
+      "llm_provider": "ollama",
+      "llm_model": "qwen2.5:7b-instruct",
+      "llm_temperature": 0.7,
+      "connection_status": {
+        "ollama_qwen2.5:7b-instruct": {
+          "status": "success",
+          "message": "Connected"
+        }
+      }
+    }
+  }
+}
