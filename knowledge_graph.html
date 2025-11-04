@@ -453,8 +453,8 @@ function highlightFilter(filter) {
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"font": {"color": "white"}, "group": "Technology", "id": "Deep Learning", "label": "Deep Learning", "shape": "dot", "title": "Technology"}, {"font": {"color": "white"}, "group": "ProgrammingLanguage", "id": "Python", "label": "Python", "shape": "dot", "title": "ProgrammingLanguage"}, {"font": {"color": "white"}, "group": "Activity", "id": "AI development", "label": "AI development", "shape": "dot", "title": "Activity"}, {"font": {"color": "white"}, "group": "Technology", "id": "Machine Learning", "label": "Machine Learning", "shape": "dot", "title": "Technology"}, {"font": {"color": "white"}, "group": "SoftwareFramework", "id": "TensorFlow", "label": "TensorFlow", "shape": "dot", "title": "SoftwareFramework"}, {"font": {"color": "white"}, "group": "Technology", "id": "Artificial Intelligence", "label": "Artificial Intelligence", "shape": "dot", "title": "Technology"}]);
-                  edges = new vis.DataSet([{"arrows": "to", "from": "Artificial Intelligence", "label": "includes", "to": "Machine Learning"}, {"arrows": "to", "from": "Machine Learning", "label": "includes", "to": "Deep Learning"}, {"arrows": "to", "from": "Python", "label": "used_for", "to": "AI development"}, {"arrows": "to", "from": "TensorFlow", "label": "used_for", "to": "Machine Learning"}]);
+                  nodes = new vis.DataSet([]);
+                  edges = new vis.DataSet([]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

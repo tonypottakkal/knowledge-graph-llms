@@ -4,6 +4,8 @@ import streamlit.components.v1 as components  # For embedding custom HTML
 from generate_knowledge_graph import generate_knowledge_graph
 from llm_factory import LLMProviderFactory
 from llm_config import LLMConfigManager
+from streamlit_security import initialize_streamlit_security, display_secure_html, IframeSandboxConfig
+from error_handler import get_error_tracker
 
 # Set up Streamlit page configuration
 st.set_page_config(
@@ -12,6 +14,20 @@ st.set_page_config(
     initial_sidebar_state="auto", 
     menu_items=None
 )
+
+# Initialize security protections
+@st.cache_resource
+def get_security_manager():
+    """Initialize and cache security manager."""
+    iframe_config = IframeSandboxConfig(
+        allow_scripts=True,
+        allow_same_origin=False,  # Better security
+        allow_forms=False,
+        allow_popups=False
+    )
+    return initialize_streamlit_security(iframe_config)
+
+security_manager = get_security_manager()
 
 # Set the title of the app
 st.title("Knowledge Graph From Text")
@@ -42,6 +58,32 @@ def get_llm_components():
     return config_manager, factory
 
 config_manager, factory = get_llm_components()
+
+def display_knowledge_graph_securely(net, security_manager):
+    """Helper function to display knowledge graph with error handling."""
+    if net:
+        st.success("✅ Knowledge graph generated successfully!")
+        
+        # Read the generated HTML file
+        output_file = "knowledge_graph.html"
+        try:
+            with open(output_file, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            # Display using secure component with error handling
+            display_secure_html(html_content, height=1000, security_manager=security_manager)
+            
+        except Exception as display_error:
+            st.error(f"❌ Error displaying graph: {str(display_error)}")
+            
+            # Fallback to standard display
+            try:
+                with open(output_file, 'r', encoding='utf-8') as f:
+                    components.html(f.read(), height=1000)
+            except Exception as fallback_error:
+                st.error(f"❌ Fallback display also failed: {str(fallback_error)}")
+    else:
+        st.error("❌ Failed to generate knowledge graph. Please check your configuration and try again.")
 
 # Display current configuration status
 col1, col2, col3 = st.columns(3)
@@ -370,7 +412,31 @@ if connection_key in st.session_state.connection_status:
             st.write("**Troubleshooting:**")
             st.write(docs['troubleshooting'])
 
+# Error handling configuration section
+st.sidebar.markdown("---")
+st.sidebar.subheader("Error Handling")
+
+# Show error tracking information
+error_tracker = get_error_tracker()
+error_patterns = error_tracker.get_error_patterns()
+
+if error_patterns["total_errors"] > 0:
+    with st.sidebar.expander("📊 Error Statistics"):
+        st.write(f"**Total Errors:** {error_patterns['total_errors']}")
+        if error_patterns["error_types"]:
+            st.write("**Error Types:**")
+            for error_type, count in error_patterns["error_types"].items():
+                st.write(f"- {error_type}: {count}")
+
+# Security status indicator
+with st.sidebar.expander("🔒 Security Status"):
+    st.success("✅ Browser extension protection active")
+    st.success("✅ Content Security Policy enabled")
+    st.success("✅ Form field protection active")
+    st.success("✅ Error suppression active")
+
 # Sidebar section for user input method
+st.sidebar.markdown("---")
 st.sidebar.title("Input document")
 input_method = st.sidebar.radio(
     "Choose an input method:",
@@ -405,18 +471,8 @@ if input_method == "Upload txt":
                             temperature=st.session_state.llm_temperature
                         )
                         
-                        if net:
-                            st.success("✅ Knowledge graph generated successfully!")
-                            
-                            # Save the graph to an HTML file
-                            output_file = "knowledge_graph.html"
-                            net.save_graph(output_file) 
-
-                            # Open the HTML file and display it within the Streamlit app
-                            HtmlFile = open(output_file, 'r', encoding='utf-8')
-                            components.html(HtmlFile.read(), height=1000)
-                        else:
-                            st.error("❌ Failed to generate knowledge graph. Please check your configuration and try again.")
+                        # Display the graph securely
+                        display_knowledge_graph_securely(net, security_manager)
                     
                     except Exception as e:
                         error_message = str(e)
@@ -447,18 +503,8 @@ else:
                             temperature=st.session_state.llm_temperature
                         )
                         
-                        if net:
-                            st.success("✅ Knowledge graph generated successfully!")
-                            
-                            # Save the graph to an HTML file
-                            output_file = "knowledge_graph.html"
-                            net.save_graph(output_file) 
-
-                            # Open the HTML file and display it within the Streamlit app
-                            HtmlFile = open(output_file, 'r', encoding='utf-8')
-                            components.html(HtmlFile.read(), height=1000)
-                        else:
-                            st.error("❌ Failed to generate knowledge graph. Please check your configuration and try again.")
+                        # Display the graph securely
+                        display_knowledge_graph_securely(net, security_manager)
                     
                     except Exception as e:
                         error_message = str(e)

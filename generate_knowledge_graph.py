@@ -2,6 +2,8 @@ from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_core.documents import Document
 from pyvis.network import Network
 from llm_factory import LLMProviderFactory
+from pyvis_config import PyVisConfigManager, SecurityConfig, DependencyConfig, create_secure_pyvis_html
+from error_handler import FrontendErrorHandler, track_frontend_error
 
 import asyncio
 import logging
@@ -65,78 +67,173 @@ async def extract_graph_data(text, provider=DEFAULT_PROVIDER, model=None, temper
         raise RuntimeError(user_message) from e
 
 
-def visualize_graph(graph_documents):
+def visualize_graph(graph_documents, use_secure_config=True):
     """
-    Visualizes a knowledge graph using PyVis based on the extracted graph documents.
+    Visualizes a knowledge graph using PyVis with enhanced error handling and security.
 
     Args:
         graph_documents (list): A list of GraphDocument objects with nodes and relationships.
+        use_secure_config (bool): Whether to use secure PyVis configuration
 
     Returns:
         pyvis.network.Network: The visualized network graph object.
     """
-    # Create network
-    net = Network(height="1200px", width="100%", directed=True,
-                      notebook=False, bgcolor="#222222", font_color="white", filter_menu=True, cdn_resources='remote') 
-
-    nodes = graph_documents[0].nodes
-    relationships = graph_documents[0].relationships
-
-    # Build lookup for valid nodes
-    node_dict = {node.id: node for node in nodes}
+    error_handler = FrontendErrorHandler()
     
-    # Filter out invalid edges and collect valid node IDs
-    valid_edges = []
-    valid_node_ids = set()
-    for rel in relationships:
-        if rel.source.id in node_dict and rel.target.id in node_dict:
-            valid_edges.append(rel)
-            valid_node_ids.update([rel.source.id, rel.target.id])
-
-    # Track which nodes are part of any relationship
-    connected_node_ids = set()
-    for rel in relationships:
-        connected_node_ids.add(rel.source.id)
-        connected_node_ids.add(rel.target.id)
-
-    # Add valid nodes to the graph
-    for node_id in valid_node_ids:
-        node = node_dict[node_id]
-        try:
-            net.add_node(node.id, label=node.id, title=node.type, group=node.type)
-        except:
-            continue  # Skip node if error occurs
-
-    # Add valid edges to the graph
-    for rel in valid_edges:
-        try:
-            net.add_edge(rel.source.id, rel.target.id, label=rel.type.lower())
-        except:
-            continue  # Skip edge if error occurs
-
-    # Configure graph layout and physics
-    net.set_options("""
-        {
-            "physics": {
-                "forceAtlas2Based": {
-                    "gravitationalConstant": -100,
-                    "centralGravity": 0.01,
-                    "springLength": 200,
-                    "springConstant": 0.08
-                },
-                "minVelocity": 0.75,
-                "solver": "forceAtlas2Based"
-            }
-        }
-    """)
-
-    output_file = "knowledge_graph.html"
     try:
-        net.save_graph(output_file)
-        print(f"Graph saved to {os.path.abspath(output_file)}")
-        return net
+        # Initialize PyVis configuration manager
+        if use_secure_config:
+            security_config = SecurityConfig(
+                enable_csp=True,
+                allow_inline_scripts=False,
+                allow_inline_styles=True
+            )
+            dependency_config = DependencyConfig(
+                use_cdn=True,
+                local_fallback=True
+            )
+            config_manager = PyVisConfigManager(security_config, dependency_config)
+        else:
+            config_manager = None
+
+        # Create network with enhanced configuration
+        net = Network(
+            height="1200px", 
+            width="100%", 
+            directed=True,
+            notebook=False, 
+            bgcolor="#222222", 
+            font_color="white", 
+            filter_menu=True, 
+            cdn_resources='remote'
+        )
+
+        nodes = graph_documents[0].nodes
+        relationships = graph_documents[0].relationships
+
+        # Build lookup for valid nodes
+        node_dict = {node.id: node for node in nodes}
+        
+        # Filter out invalid edges and collect valid node IDs
+        valid_edges = []
+        valid_node_ids = set()
+        for rel in relationships:
+            if rel.source.id in node_dict and rel.target.id in node_dict:
+                valid_edges.append(rel)
+                valid_node_ids.update([rel.source.id, rel.target.id])
+
+        # Add valid nodes to the graph with error handling
+        nodes_added = 0
+        for node_id in valid_node_ids:
+            node = node_dict[node_id]
+            try:
+                net.add_node(node.id, label=node.id, title=node.type, group=node.type)
+                nodes_added += 1
+            except Exception as e:
+                logger.warning(f"Failed to add node {node_id}: {str(e)}")
+                continue
+
+        # Add valid edges to the graph with error handling
+        edges_added = 0
+        for rel in valid_edges:
+            try:
+                net.add_edge(rel.source.id, rel.target.id, label=rel.type.lower())
+                edges_added += 1
+            except Exception as e:
+                logger.warning(f"Failed to add edge {rel.source.id} -> {rel.target.id}: {str(e)}")
+                continue
+
+        logger.info(f"Successfully added {nodes_added} nodes and {edges_added} edges to the graph")
+
+        # Configure graph layout and physics with error handling
+        try:
+            net.set_options("""
+                {
+                    "physics": {
+                        "forceAtlas2Based": {
+                            "gravitationalConstant": -100,
+                            "centralGravity": 0.01,
+                            "springLength": 200,
+                            "springConstant": 0.08
+                        },
+                        "minVelocity": 0.75,
+                        "solver": "forceAtlas2Based"
+                    },
+                    "interaction": {
+                        "hover": true,
+                        "selectConnectedEdges": false
+                    },
+                    "nodes": {
+                        "font": {"color": "white"},
+                        "borderWidth": 2
+                    },
+                    "edges": {
+                        "font": {"color": "white", "align": "middle"},
+                        "arrows": {"to": {"enabled": true}}
+                    }
+                }
+            """)
+        except Exception as e:
+            logger.warning(f"Failed to set graph options: {str(e)}")
+
+        output_file = "knowledge_graph.html"
+        
+        try:
+            if use_secure_config and config_manager:
+                # Generate secure HTML with proper dependency management
+                import json
+                
+                # Get nodes and edges data from PyVis network
+                nodes_data = net.get_nodes()
+                edges_data = net.get_edges()
+                
+                nodes_js = f"var nodes = new vis.DataSet({json.dumps(nodes_data)});"
+                edges_js = f"var edges = new vis.DataSet({json.dumps(edges_data)});"
+                
+                secure_html = create_secure_pyvis_html(nodes_js, edges_js, config_manager)
+                
+                # Write secure HTML to file
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write(secure_html)
+                
+                logger.info(f"Secure graph saved to {os.path.abspath(output_file)}")
+            else:
+                # Use standard PyVis save method
+                net.save_graph(output_file)
+                logger.info(f"Standard graph saved to {os.path.abspath(output_file)}")
+            
+            return net
+            
+        except Exception as e:
+            error_context = {
+                'component': 'visualization',
+                'user_action': 'save_graph',
+                'provider': 'pyvis',
+                'nodes_count': nodes_added,
+                'edges_count': edges_added
+            }
+            
+            error_id = track_frontend_error(e, error_context)
+            logger.error(f"Error saving graph (ID: {error_id}): {str(e)}")
+            
+            # Try fallback save method
+            try:
+                net.save_graph(f"fallback_{output_file}")
+                logger.info(f"Fallback graph saved to fallback_{output_file}")
+                return net
+            except Exception as fallback_error:
+                logger.error(f"Fallback save also failed: {str(fallback_error)}")
+                return None
+
     except Exception as e:
-        print(f"Error saving graph: {e}")
+        error_context = {
+            'component': 'visualization',
+            'user_action': 'create_graph',
+            'provider': 'pyvis'
+        }
+        
+        error_id = track_frontend_error(e, error_context)
+        logger.error(f"Visualization creation failed (ID: {error_id}): {str(e)}")
         return None
 
 
